@@ -32,7 +32,7 @@ COPY ./glpi.conf /etc/apache2/sites-enabled/glpi.conf
 
 # Cleaning
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN apt remove wget libfreetype6-dev libjpeg62-turbo-dev libpng-dev libldap-dev libc-client2007e-dev libkrb5-dev -y && apt autoremove -y
+RUN apt remove wget libfreetype6-dev libjpeg62-turbo-dev libpng-dev libldap-dev libc-client2007e-dev libkrb5-dev gcc autoconf gcc-8 -y && apt autoremove -y
 
 # Copy entrypoint script
 COPY ./entrypoint.sh /root/entrypoint.sh
