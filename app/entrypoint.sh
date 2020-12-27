@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # Var definitions
 GLPI_CONFIG_DIR=$1
 GLPI_VAR_DIR=$2
@@ -32,6 +30,27 @@ LOCAL_DEFINE_CONTENT="<?php
 define('GLPI_VAR_DIR', '$GLPI_VAR_DIR');
 define('GLPI_LOG_DIR', '$GLPI_LOG_DIR');
 "
+
+## From wait-for-it.sh ##
+# Credits https://github.com/vishnubob/wait-for-it/blob/master/wait-for-it.sh
+while :
+do
+    echo -n > /dev/tcp/$MYSQL_HOST/3306
+    DBISREADY=$?
+
+    ## if DB is down
+    if [[ $DBISREADY -eq 1 ]]; then
+        sleep 1
+        echo $MYSQL_HOST not ready yet...
+    ## if it's up
+    else
+        echo $MYSQL_HOST ready!!!
+        break
+    fi
+done
+# / From wait-for-it.sh #
+
+set -e
 
 if [ -f $GLPI_CONFIG_DIR/config_db.php ]; then
     [ -f $GLPI_DOCUMENT_ROOT/install/install.php ] && rm -v $GLPI_DOCUMENT_ROOT/install/install.php
