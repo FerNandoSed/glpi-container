@@ -1,0 +1,62 @@
+#!/bin/bash
+
+set -e
+
+# Var definitions
+GLPI_CONFIG_DIR=$1
+GLPI_VAR_DIR=$2
+GLPI_LOG_DIR=$3
+MYSQL_DATABASE=$4
+MYSQL_USER=$5
+MYSQL_PASSWORD=$6
+MYSQL_HOST=$7
+GLPI_DOCUMENT_ROOT=/var/www/glpi
+
+FILE_DIRS="
+_cache
+_dumps
+_locales
+_log
+_plugins
+_sessions
+_uploads
+_cron
+_graphs
+_lock
+_pictures
+_rss
+_tmp
+"
+
+LOCAL_DEFINE_CONTENT="<?php
+define('GLPI_VAR_DIR', '$GLPI_VAR_DIR');
+define('GLPI_LOG_DIR', '$GLPI_LOG_DIR');
+"
+
+if [ -f $GLPI_CONFIG_DIR/config_db.php ]; then
+    [ -f $GLPI_DOCUMENT_ROOT/install/install.php ] && rm -v $GLPI_DOCUMENT_ROOT/install/install.php
+    apache2-foreground
+else
+    for DIR in $FILE_DIRS ; do
+        mkdir $GLPI_VAR_DIR/$DIR -p
+    done
+
+    cd $GLPI_DOCUMENT_ROOT
+
+    chown -Rv www-data:www-data $GLPI_CONFIG_DIR $GLPI_LOG_DIR $GLPI_VAR_DIR
+
+    php bin/console db:install --db-host=$MYSQL_HOST \
+        --db-name=$MYSQL_DATABASE \
+        --db-user=$MYSQL_USER \
+        --db-password=$MYSQL_PASSWORD \
+        -n \
+        --force
+    
+    echo $LOCAL_DEFINE_CONTENT > $GLPI_CONFIG_DIR/local_define.php
+
+    chown -Rv www-data:www-data $GLPI_CONFIG_DIR $GLPI_LOG_DIR $GLPI_VAR_DIR
+
+    rm -v $GLPI_DOCUMENT_ROOT/install/install.php
+
+    apache2-foreground
+fi

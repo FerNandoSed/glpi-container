@@ -1,0 +1,45 @@
+version: '3.3'
+services:
+  app:
+    env_file: .env
+    build:
+      context: app
+      args:
+        - $GLPI_CONFIG_DIR
+    ports:
+      - "0.0.0.0:6543:80"
+    volumes:
+      - files:$GLPI_VAR_DIR
+      - log_glpi:$GLPI_LOG_DIR
+      - conf_glpi:$GLPI_CONFIG_DIR
+      - ./app/downstream.php:/var/www/glpi/inc/downstream.php
+    entrypoint:
+      - /root/entrypoint.sh
+      - $GLPI_CONFIG_DIR
+      - $GLPI_VAR_DIR
+      - $GLPI_LOG_DIR
+      - $MYSQL_DATABASE
+      - $MYSQL_USER
+      - $MYSQL_PASSWORD
+      - db
+  # web:
+  #   image: "nginx:stable"
+  #   volumes:
+  #     # - ./webdata/files/:/var/www/glpi/files
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  db:
+    image: "mariadb:10.5"
+    env_file: .env
+    volumes:
+      - db_glpi:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+volumes:
+  db_glpi: {}
+  files: {}
+  conf_glpi: {}
+  log_glpi: {}
