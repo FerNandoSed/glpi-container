@@ -1,17 +1,26 @@
-FROM php:7.4-apache
+FROM php:7.4-fpm-alpine
 
 ## PHP Modules
-RUN apt-get update && apt-get install -y \
-        libfreetype6 \
-        libjpeg62-turbo \
-        libpng16-16 \
-        libldap-2.4-2 \
-        libc-client2007e libkrb5-3 libxml2 \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
+RUN apk add --no-cache \
+        libjpeg-turbo-dev \
         libpng-dev \
-        libldap-dev \
-        libc-client2007e-dev libkrb5-dev libxml2-dev libbz2-dev libzip-dev\
+        libldap \
+        krb5-dev \
+        libxml2 \
+        freetype-dev \
+        libxml2-dev \
+        libzip-dev \
+        imap-dev \
+        c-client \
+        openssl-dev \
+        openldap-dev \
+        icu-dev \
+        bzip2-dev \
+        libbz2 \
+        libzip \
+        libintl \
+        libgd \
+        icu-libs \
     && mkdir -p /usr/src/php/ext/apcu \
     && curl -fsSL https://github.com/krakjoe/apcu/archive/v5.1.18.tar.gz | tar xvz -C /usr/src/php/ext/apcu --strip 1 \
     && docker-php-ext-install -j$(nproc) apcu
@@ -21,19 +30,29 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-source delete
 
 # GLPI Instalation
-RUN apt-get update && apt-get install wget -y \
+RUN apk add wget tar \
     && cd /var/www/ \
     && wget https://github.com/glpi-project/glpi/releases/download/9.5.3/glpi-9.5.3.tgz \
     && tar xf glpi-9.5.3.tgz \
     && rm /var/www/glpi-9.5.3.tgz \
     && chown -R www-data:www-data /var/www/glpi
-RUN rm /etc/apache2/sites-enabled/000-default.conf
-COPY ./glpi.conf /etc/apache2/sites-enabled/glpi.conf
 
 # Cleaning
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN apt remove wget libfreetype6-dev libjpeg62-turbo-dev libpng-dev libldap-dev libc-client2007e-dev libkrb5-dev gcc autoconf gcc-8 -y && apt autoremove -y
+RUN apk del \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        krb5-dev libxml2 \
+        freetype-dev \
+        libxml2-dev \
+        libzip-dev \
+        wget \
+        imap-dev \
+        openssl-dev \
+        openldap-dev \
+        icu-dev \
+        bzip2-dev
 
 # Copy entrypoint script
+RUN apk add bash
 COPY ./entrypoint.sh /root/entrypoint.sh
 RUN  chmod 750 /root/entrypoint.sh

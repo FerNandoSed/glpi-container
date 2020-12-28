@@ -54,15 +54,15 @@ set -e
 
 if [ -f $GLPI_CONFIG_DIR/config_db.php ]; then
     [ -f $GLPI_DOCUMENT_ROOT/install/install.php ] && rm -v $GLPI_DOCUMENT_ROOT/install/install.php
-    apache2-foreground
+    php-fpm
 else
     for DIR in $FILE_DIRS ; do
         mkdir $GLPI_VAR_DIR/$DIR -p
     done
 
-    cd $GLPI_DOCUMENT_ROOT
-
     chown -Rv www-data:www-data $GLPI_CONFIG_DIR $GLPI_LOG_DIR $GLPI_VAR_DIR
+
+    cd $GLPI_DOCUMENT_ROOT    
 
     php bin/console db:install --db-host=$MYSQL_HOST \
         --db-name=$MYSQL_DATABASE \
@@ -77,5 +77,5 @@ else
 
     rm -v $GLPI_DOCUMENT_ROOT/install/install.php
 
-    apache2-foreground
+    php-fpm
 fi
