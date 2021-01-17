@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# Var definitions
-GLPI_CONFIG_DIR=$1
-GLPI_VAR_DIR=$2
-GLPI_LOG_DIR=$3
-MYSQL_DATABASE=$4
-MYSQL_USER=$5
-MYSQL_PASSWORD=$6
-MYSQL_HOST=$7
-GLPI_DOCUMENT_ROOT=/var/www/glpi
+set -u
 
 FILE_DIRS="
 _cache
@@ -64,10 +56,12 @@ else
 
     cd $GLPI_DOCUMENT_ROOT    
 
+    echo $MYSQL_PASSWORD
+
     php bin/console db:install --db-host=$MYSQL_HOST \
         --db-name=$MYSQL_DATABASE \
         --db-user=$MYSQL_USER \
-        --db-password=$MYSQL_PASSWORD \
+        --db-password="$MYSQL_PASSWORD" \
         -n \
         --force
     
