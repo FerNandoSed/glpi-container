@@ -1,0 +1,137 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-config-configmap
+  namespace: glpi
+data:
+  default.conf: |-
+    server {
+        listen 80;
+        server_name _;       
+
+        index index.php;
+        root /var/www/glpi;
+        
+        location / {try_files $uri $uri/ index.php;}
+        
+        location ~ \.php$ {
+            fastcgi_pass localhost:9000;
+            fastcgi_index index.php;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+            fastcgi_param SERVER_NAME $host;
+        }
+    }
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: glpi
+  namespace: glpi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glpi
+  template:
+    metadata:
+      labels:
+        app: glpi
+    spec:
+      initContainers:
+        - name: download-glpi
+          image: nginx:stable-alpine
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - "apk add wget tar && mkdir /var/www/glpi -p && cd /var/www/ && wget https://github.com/glpi-project/glpi/releases/download/9.5.3/glpi-9.5.3.tgz && tar xf glpi-9.5.3.tgz glpi/ && rm /var/www/glpi-9.5.3.tgz"
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/
+              name: nginx-config
+            - mountPath: /var/www/glpi
+              name: glpi-app
+      containers:
+        - name: web
+          image: nginx:stable-alpine
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/
+              name: nginx-config
+            - mountPath: /var/www/glpi
+              name: glpi-app
+        - name: app
+          image: 'fdocid/glpi:0.3'
+          command:
+            - /root/entrypoint.sh
+          envFrom:
+            - secretRef:
+                name: glpi-secrets
+          env:
+            - name: GLPI_CONFIG_DIR
+              value: /etc/glpi
+            - name: GLPI_VAR_DIR
+              value: /var/lib/glpi
+            - name: GLPI_LOG_DIR
+              value: /var/log/glpi
+            - name: GLPI_DOCUMENT_ROOT
+              value: /var/www/glpi
+            - name: MYSQL_HOST
+              value: db
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - mountPath: /var/lib/glpi
+              name: glpi-files
+            - mountPath: /var/log/glpi
+              name: glpi-log
+            - mountPath: /etc/glpi
+              name: glpi-conf
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
+            requests:
+              cpu: '250m'
+              memory: '256Mi'
+      volumes:
+        - name: glpi-files
+          persistentVolumeClaim:
+            claimName: glpi-files-pvc
+        - name: glpi-log
+          persistentVolumeClaim:
+            claimName: glpi-log-pvc
+        - name: glpi-conf
+          persistentVolumeClaim:
+            claimName: glpi-conf-pvc
+        - name: glpi-app
+          persistentVolumeClaim:
+            claimName: glpi-app-pvc
+        - name: nginx-config
+          configMap:
+            name: nginx-config-configmap
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: web
+  namespace: glpi
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: glpi

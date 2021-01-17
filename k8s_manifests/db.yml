@@ -1,0 +1,64 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mariadb-pvc
+  namespace: glpi
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Mi
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: db
+  namespace: glpi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: db
+          image: mariadb:10.5
+          ports:
+            - containerPort: 3306
+          envFrom:
+            - secretRef:
+                name: glpi-secrets
+          volumeMounts:
+            - mountPath: /var/lib/mysql/
+              name: database
+          resources:
+            limits:
+              cpu: '2'
+              memory: '512Mi'
+            requests:
+              cpu: '500m'
+              memory: '256Mi'
+      volumes:
+        - name: database
+          persistentVolumeClaim:
+            claimName: mariadb-pvc
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: db
+  namespace: glpi
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    app: db
