@@ -11,13 +11,6 @@ services:
       - ./app/downstream.php:/var/www/glpi/inc/downstream.php
     entrypoint:
       - /root/entrypoint.sh
-      - $GLPI_CONFIG_DIR
-      - $GLPI_VAR_DIR
-      - $GLPI_LOG_DIR
-      - $MYSQL_DATABASE
-      - $MYSQL_USER
-      - $MYSQL_PASSWORD
-      - db
     depends_on:
       - db
     expose:
