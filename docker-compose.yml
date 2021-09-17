@@ -8,7 +8,7 @@ services:
       - files:$GLPI_VAR_DIR
       - log_glpi:$GLPI_LOG_DIR
       - conf_glpi:$GLPI_CONFIG_DIR
-      - ./app/downstream.php:/var/www/glpi/inc/downstream.php
+      - docroot_glpi:$GLPI_DOCUMENT_ROOT
     entrypoint:
       - /root/entrypoint.sh
     depends_on:
@@ -16,10 +16,13 @@ services:
     expose:
       - 9000
   web:
-    build:
-      context: nginx
+    env_file: .env
+    depends_on:
+      - app
+    image: nginx:stable-alpine
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/templates:/etc/nginx/templates
+      - docroot_glpi:$GLPI_DOCUMENT_ROOT
     ports:
       - "0.0.0.0:6543:80"
   db:
@@ -38,3 +41,4 @@ volumes:
   files: {}
   conf_glpi: {}
   log_glpi: {}
+  docroot_glpi: {}

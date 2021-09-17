@@ -31,10 +31,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install -j$(nproc) mysqli ldap xmlrpc exif imap gd intl bz2 opcache zip && \
     docker-php-source delete
 
-# GLPI Instalation
+# GLPI Installation
 RUN apk add wget tar && \
     mkdir -p /usr/local/src && cd /usr/local/src && \
-    wget -O- https://github.com/glpi-project/glpi/releases/download/9.5.6/glpi-9.5.6.tgz | tar xzf -
+    wget https://github.com/glpi-project/glpi/releases/download/9.5.6/glpi-9.5.6.tgz
 
 # Cleaning
 RUN apk del \
