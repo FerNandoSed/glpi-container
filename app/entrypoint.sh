@@ -68,12 +68,13 @@ function copy_glpi {
     fi
 }
 
-# Check if GLPI is not installed. If not, run php-fpm
+# Check if GLPI is not installed. If installed, run php-fpm
 if [ -f $GLPI_CONFIG_DIR/config_db.php ]; then
-    echo "starting php-fpm"
+    echo "GLPI is installed..."
+    echo "starting php-fpm..."
     php-fpm
 
-# Install GLPI if not already installed
+# Install GLPI if not installed
 else
 
     copy_glpi
