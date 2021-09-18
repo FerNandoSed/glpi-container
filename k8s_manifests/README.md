@@ -10,5 +10,5 @@ kubectl create secret generic glpi-secrets --from-literal=MYSQL_RANDOM_ROOT_PASS
 ```
 ## Despliegue de la aplicación en k8s
 ```
-kubectl apply -f glpi.yml -f persistent_volume_claim.yml -f db.yml
+kubectl apply -f glpi.yml -f persistent_volume_claim.yml -f db.yml -f php-configmap.yml -f nginx-configmap.yml
 ```
