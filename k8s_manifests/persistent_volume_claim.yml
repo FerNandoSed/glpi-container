@@ -3,7 +3,6 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: glpi-files-pvc
-  namespace: glpi
 spec:
   accessModes:
     - ReadWriteOnce
@@ -16,7 +15,6 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: glpi-log-pvc
-  namespace: glpi
 spec:
   accessModes:
     - ReadWriteOnce
@@ -29,7 +27,6 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: glpi-conf-pvc
-  namespace: glpi
 spec:
   accessModes:
     - ReadWriteOnce
@@ -41,8 +38,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: glpi-app-pvc
-  namespace: glpi
+  name: glpi-www-pvc
 spec:
   accessModes:
     - ReadWriteOnce

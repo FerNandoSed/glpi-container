@@ -3,7 +3,6 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: glpi
-  namespace: glpi
 spec:
   replicas: 1
   selector:
@@ -14,21 +13,9 @@ spec:
       labels:
         app: glpi
     spec:
-      initContainers:
-        - name: download-glpi
-          image: nginx:stable-alpine
-          command: ["/bin/sh"]
-          args:
-            - "-c"
-            - "apk add wget tar && mkdir /var/www/glpi -p && cd /var/www/ && wget https://github.com/glpi-project/glpi/releases/download/9.5.3/glpi-9.5.3.tgz && tar xf glpi-9.5.3.tgz glpi/ && rm /var/www/glpi-9.5.3.tgz"
-          volumeMounts:
-            - mountPath: /etc/nginx/
-              name: nginx-config
-            - mountPath: /var/www/glpi
-              name: glpi-app
       containers:
         - name: app
-          image: 'fdocid/glpi:0.3'
+          image: 'ghcr.io/fernandosed/glpi-container:master'
           command:
             - /root/entrypoint.sh
           envFrom:
@@ -38,22 +25,24 @@ spec:
             - name: GLPI_CONFIG_DIR
               value: /etc/glpi
             - name: GLPI_VAR_DIR
-              value: /var/lib/glpi
+              value: /glpi/files
             - name: GLPI_LOG_DIR
-              value: /var/log/glpi
+              value: /glpi/log
             - name: GLPI_DOCUMENT_ROOT
-              value: /var/www/glpi
+              value: /glpi/glpi
             - name: MYSQL_HOST
               value: db
           ports:
             - containerPort: 9000
           volumeMounts:
-            - mountPath: /var/lib/glpi
+            - mountPath: /glpi/files
               name: glpi-files
-            - mountPath: /var/log/glpi
+            - mountPath: /glpi/log
               name: glpi-log
             - mountPath: /etc/glpi
               name: glpi-conf
+            - mountPath: /glpi/glpi
+              name: glpi-www
             - mountPath: /usr/local/etc/php-fpm.d/
               name: php-fpm-config
           resources:
@@ -76,10 +65,21 @@ spec:
               port: 80
             initialDelaySeconds: 30
           volumeMounts:
-            - mountPath: /etc/nginx/
+            - mountPath: /etc/nginx/templates
               name: nginx-config
-            - mountPath: /var/www/glpi
-              name: glpi-app
+            - mountPath: /glpi/glpi
+              name: glpi-www
+            - mountPath: /glpi/files
+              name: glpi-files
+            - mountPath: /glpi/log
+              name: glpi-log
+            - mountPath: /etc/glpi
+              name: glpi-conf
+          env:
+            - name: GLPI_HOST
+              value: 127.0.0.1
+            - name: GLPI_DOCUMENT_ROOT
+              value: /glpi/glpi
       volumes:
         - name: glpi-files
           persistentVolumeClaim:
@@ -90,22 +90,25 @@ spec:
         - name: glpi-conf
           persistentVolumeClaim:
             claimName: glpi-conf-pvc
-        - name: glpi-app
+        - name: glpi-www
           persistentVolumeClaim:
-            claimName: glpi-app-pvc
+            claimName: glpi-www-pvc
         - name: nginx-config
           configMap:
             name: nginx-config-configmap
         - name: php-fpm-config
           configMap:
             name: php-fpm-config-configmap
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
 
 ---
 kind: Service
 apiVersion: v1
 metadata:
   name: web
-  namespace: glpi
 spec:
   type: NodePort
   ports:
@@ -119,12 +122,15 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: glpi-ingress
-  namespace: glpi
   annotations:
+    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    # nginx.ingress.kubernetes.io/auth-type: basic
+    # nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    # nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - fool'
 spec:
   rules:
-  - host: glpi.localdomain
+  - host: glpi.cobayops.local
     http:
       paths:
       - backend:
