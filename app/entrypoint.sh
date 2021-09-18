@@ -62,7 +62,13 @@ function copy_glpi {
         echo "Not copying GLPI, since is already in document root"
     else
         echo "Copying GLPI (index.php is missing)"
-        tar -C $GLPI_DOCUMENT_ROOT/.. -xf /usr/local/src/glpi-9.5.6.tgz
+        if [ $(echo $GLPI_DOCUMENT_ROOT | rev | cut -d'/' -f1 | rev) = "glpi" ]; then
+            tar -C $GLPI_DOCUMENT_ROOT/.. -xf /usr/local/src/glpi-9.5.6.tgz
+        else
+            tar -C $GLPI_DOCUMENT_ROOT -xf /usr/local/src/glpi-9.5.6.tgz
+            mv $GLPI_DOCUMENT_ROOT/glpi/* $GLPI_DOCUMENT_ROOT/
+            rm -r $GLPI_DOCUMENT_ROOT/glpi
+        fi
         echo "chowning $GLPI_DOCUMENT_ROOT to www-data..."
         chown -R www-data:www-data $GLPI_DOCUMENT_ROOT
     fi
