@@ -5,7 +5,7 @@ server {
     gzip on;
 
     index index.php;
-    root ${GLPI_DOCUMENT_ROOT};
+    root ${GLPI_DATA}/www;
     
     location / {try_files $uri $uri/ index.php;}
     
