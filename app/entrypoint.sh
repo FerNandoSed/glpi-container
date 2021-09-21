@@ -21,17 +21,7 @@ _rss
 _tmp
 "
 
-LOCAL_DEFINE_CONTENT="<?php
-define('GLPI_VAR_DIR', '$GLPI_VAR_DIR');
-define('GLPI_LOG_DIR', '$GLPI_LOG_DIR');
-"
-DOWNSTREAM_CONTENT="<?php
-define('GLPI_CONFIG_DIR', '$GLPI_CONFIG_DIR');
 
-if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-   require_once GLPI_CONFIG_DIR . '/local_define.php';
-}
-"
 
 ## From wait-for-it.sh ##
 # Credits https://github.com/vishnubob/wait-for-it/blob/master/wait-for-it.sh
@@ -54,6 +44,56 @@ done
 
 set -e
 
+# Define directories, if not already defined by environment variables.
+function init_vars {
+
+    if [ -z ${GLPI_CONFIG_DIR:-""} ]; then
+        GLPI_CONFIG_DIR=$GLPI_DATA/confs
+    fi
+
+    if [ -z ${GLPI_DOCUMENT_ROOT:-""} ]; then
+        GLPI_DOCUMENT_ROOT=$GLPI_DATA/www
+    fi
+
+    if [ -z ${GLPI_LOG_DIR:-""} ]; then
+        GLPI_LOG_DIR=$GLPI_DATA/logs
+    fi
+
+    if [ -z ${GLPI_VAR_DIR:-""} ]; then
+        GLPI_VAR_DIR=$GLPI_DATA/files
+    fi
+
+LOCAL_DEFINE_CONTENT="<?php
+define('GLPI_VAR_DIR', '$GLPI_VAR_DIR');
+define('GLPI_LOG_DIR', '$GLPI_LOG_DIR');
+"
+    DOWNSTREAM_CONTENT="<?php
+define('GLPI_CONFIG_DIR', '$GLPI_CONFIG_DIR');
+
+if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+   require_once GLPI_CONFIG_DIR . '/local_define.php';
+}"
+
+}
+
+function check_dirs {
+    echo Checking directories...
+    for dir in \
+        $GLPI_DOCUMENT_ROOT \
+        $GLPI_CONFIG_DIR \
+        $GLPI_LOG_DIR \
+        $GLPI_VAR_DIR \
+        ;
+        do
+        if [ -d $dir ]; then
+            echo Directory $dir exists...
+        else
+            echo Directory $dir does not exist. Creating...
+            mkdir -p $dir
+        fi
+    done
+}
+
 function copy_glpi {
     # This function transfers GLPI to document root. Document root should be a persistent module.
 
@@ -74,15 +114,23 @@ function copy_glpi {
     fi
 }
 
-# Check if GLPI is not installed. If installed, run php-fpm
-if [ -f $GLPI_CONFIG_DIR/config_db.php ]; then
+function run_glpi {
     echo "GLPI is installed..."
     echo "starting php-fpm..."
     php-fpm
+}
 
-# Install GLPI if not installed
+# Check vars before installation
+init_vars
+
+# If GLPI is installed, run php-fpm
+if [ -f $GLPI_CONFIG_DIR/config_db.php ]; then
+    run_glpi
+
+# Install GLPI in other case
 else
 
+    check_dirs
     copy_glpi
 
     # Create directories for GLPI files, since this is a custom position for GLPI variable data
@@ -113,5 +161,5 @@ else
     # This is useful for security purposes and for determining if GLPI is already installed
     rm -v $GLPI_DOCUMENT_ROOT/install/install.php
 
-    php-fpm
+    run_glpi
 fi

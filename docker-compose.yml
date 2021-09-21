@@ -5,10 +5,7 @@ services:
     build:
       context: app
     volumes:
-      - files:$GLPI_VAR_DIR
-      - log_glpi:$GLPI_LOG_DIR
-      - conf_glpi:$GLPI_CONFIG_DIR
-      - docroot_glpi:$GLPI_DOCUMENT_ROOT
+      - data_glpi:$GLPI_DATA
     entrypoint:
       - /root/entrypoint.sh
     depends_on:
@@ -22,23 +19,20 @@ services:
     image: nginx:stable-alpine
     volumes:
       - ./nginx/templates:/etc/nginx/templates
-      - docroot_glpi:$GLPI_DOCUMENT_ROOT
+      - data_glpi:$GLPI_DATA
     ports:
       - "0.0.0.0:6543:80"
   db:
-    image: "mariadb:10.5"
+    image: "mariadb:10.6"
     env_file: .env
     volumes:
       - db_glpi:/var/lib/mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
       MYSQL_DATABASE: $MYSQL_DATABASE
       MYSQL_USER: $MYSQL_USER
       MYSQL_PASSWORD: $MYSQL_PASSWORD
 volumes:
   db_glpi: {}
-  files: {}
-  conf_glpi: {}
-  log_glpi: {}
-  docroot_glpi: {}
+  data_glpi: {}
