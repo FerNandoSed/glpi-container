@@ -22,27 +22,15 @@ spec:
             - secretRef:
                 name: glpi-secrets
           env:
-            - name: GLPI_CONFIG_DIR
-              value: /etc/glpi
-            - name: GLPI_VAR_DIR
-              value: /glpi/files
-            - name: GLPI_LOG_DIR
-              value: /glpi/log
-            - name: GLPI_DOCUMENT_ROOT
-              value: /glpi/glpi
+            - name: GLPI_DATA
+              value: /glpi
             - name: MYSQL_HOST
               value: db
           ports:
             - containerPort: 9000
           volumeMounts:
-            - mountPath: /glpi/files
-              name: glpi-files
-            - mountPath: /glpi/log
-              name: glpi-log
-            - mountPath: /etc/glpi
-              name: glpi-conf
-            - mountPath: /glpi/glpi
-              name: glpi-www
+            - mountPath: /glpi
+              name: glpi-data
             - mountPath: /usr/local/etc/php-fpm.d/
               name: php-fpm-config
           resources:
@@ -67,32 +55,17 @@ spec:
           volumeMounts:
             - mountPath: /etc/nginx/templates
               name: nginx-config
-            - mountPath: /glpi/glpi
-              name: glpi-www
-            - mountPath: /glpi/files
-              name: glpi-files
-            - mountPath: /glpi/log
-              name: glpi-log
-            - mountPath: /etc/glpi
-              name: glpi-conf
+            - mountPath: /glpi
+              name: glpi-data
           env:
             - name: GLPI_HOST
               value: 127.0.0.1
-            - name: GLPI_DOCUMENT_ROOT
-              value: /glpi/glpi
+            - name: GLPI_DATA
+              value: /glpi
       volumes:
-        - name: glpi-files
+        - name: glpi-data
           persistentVolumeClaim:
-            claimName: glpi-files-pvc
-        - name: glpi-log
-          persistentVolumeClaim:
-            claimName: glpi-log-pvc
-        - name: glpi-conf
-          persistentVolumeClaim:
-            claimName: glpi-conf-pvc
-        - name: glpi-www
-          persistentVolumeClaim:
-            claimName: glpi-www-pvc
+            claimName: glpi-data-pvc
         - name: nginx-config
           configMap:
             name: nginx-config-configmap
@@ -103,7 +76,17 @@ spec:
         options:
           - name: ndots
             value: "1"
-
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glpi-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100G
 ---
 kind: Service
 apiVersion: v1
@@ -131,7 +114,7 @@ metadata:
     # nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - fool'
 spec:
   rules:
-  - host: glpi.cobayops.local
+  - host: glpi.cobayops.xyz
     http:
       paths:
       - backend:
