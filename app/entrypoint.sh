@@ -48,19 +48,19 @@ set -e
 function init_vars {
 
     if [ -z ${GLPI_CONFIG_DIR:-""} ]; then
-        GLPI_CONFIG_DIR=$GLPI_DATA/confs
+        export GLPI_CONFIG_DIR=$GLPI_DATA/confs
     fi
 
     if [ -z ${GLPI_DOCUMENT_ROOT:-""} ]; then
-        GLPI_DOCUMENT_ROOT=$GLPI_DATA/www
+        export GLPI_DOCUMENT_ROOT=$GLPI_DATA/www
     fi
 
     if [ -z ${GLPI_LOG_DIR:-""} ]; then
-        GLPI_LOG_DIR=$GLPI_DATA/logs
+        export GLPI_LOG_DIR=$GLPI_DATA/logs
     fi
 
     if [ -z ${GLPI_VAR_DIR:-""} ]; then
-        GLPI_VAR_DIR=$GLPI_DATA/files
+        export GLPI_VAR_DIR=$GLPI_DATA/files
     fi
 
 LOCAL_DEFINE_CONTENT="<?php
