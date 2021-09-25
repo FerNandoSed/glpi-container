@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: glpi-www
+spec:
+  capacity:
+    storage: 100G
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: /glpi/www
+    server: 10.43.150.42
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: glpi-conf
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: /glpi/confs
+    server: 10.43.150.42
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: glpi-logs
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: /glpi/logs
+    server: 10.43.150.42
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: glpi-files
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: /glpi/files
+    server: 10.43.150.42

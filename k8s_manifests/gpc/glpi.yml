@@ -16,6 +16,7 @@ spec:
       containers:
         - name: app
           image: 'ghcr.io/fernandosed/glpi-container:master'
+          imagePullPolicy: Always
           command:
             - /root/entrypoint.sh
           envFrom:
@@ -83,10 +84,25 @@ metadata:
   name: glpi-data-pvc
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: glpi-data
   resources:
     requests:
-      storage: 100G
+      storage: 1G
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: glpi-data
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: /nfs/glpi
+    server: 10.20.248.2
 ---
 kind: Service
 apiVersion: v1
