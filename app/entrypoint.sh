@@ -95,7 +95,7 @@ function check_dirs {
 }
 
 function copy_glpi {
-    # This function transfers GLPI to document root. Document root should be a persistent module.
+    # This function transfers GLPI to document root. Document root should be a persistent volume.
 
     # check if GLPI is already copied
     if [ -f $GLPI_DOCUMENT_ROOT/index.php ]; then
