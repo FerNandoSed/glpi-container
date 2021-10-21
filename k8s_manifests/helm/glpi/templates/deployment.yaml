@@ -1,0 +1,106 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "glpi.fullname" . }}
+  labels:
+    {{- include "glpi.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "glpi.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "glpi.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: glpi-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 9000
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /glpi
+              name: glpi-data
+            - mountPath: /usr/local/etc/php-fpm.d/
+              name: php-fpm-config
+          env:
+            - name: GLPI_DATA
+              value: /glpi
+            - name: MYSQL_HOST
+              value: db
+        - name: web
+          image: nginx:stable-alpine
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+          volumeMounts:
+            - mountPath: /etc/nginx/templates
+              name: nginx-config
+            - mountPath: /glpi
+              name: glpi-data
+          env:
+            - name: GLPI_HOST
+              value: 127.0.0.1
+            - name: GLPI_DATA
+              value: /glpi
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: glpi-data
+          persistentVolumeClaim:
+            claimName: glpi-data-pvc
+        - name: nginx-config
+          configMap:
+            name: nginx-config-configmap
+        - name: php-fpm-config
+          configMap:
+            name: php-fpm-config-configmap
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: glpi-data-pvc
+spec:
+  accessModes:
+    - {{ .Values.storage.accessMode }}
+  storageClassName: {{ .Values.storage.storageClassName }}
+  volumeName: {{ .Values.storage.volumeName }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}

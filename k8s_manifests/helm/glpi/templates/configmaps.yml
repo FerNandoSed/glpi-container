@@ -1,0 +1,55 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: php-fpm-config-configmap
+data:
+  www.conf: |-
+    [global]
+    daemonize = no
+    error_log = /proc/self/fd/2
+    log_limit = 8192
+    [www]
+    clear_env = no
+    ; Ensure worker stdout and stderr are sent to the main error log.
+    catch_workers_output = yes
+    decorate_workers_output = no    
+    ; if we send this to /proc/self/fd/1, it never appears
+    access.log = /proc/self/fd/2
+    user = www-data
+    group = www-data
+    listen = 127.0.0.1:9000
+    pm = dynamic
+    pm.max_children = 5
+    pm.start_servers = 2
+    pm.min_spare_servers = 1
+    pm.max_spare_servers = 3
+    php_admin_value[upload_max_filesize] = 20M
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-config-configmap
+data:
+  default.conf.template: |-
+    server {
+        listen 80;
+        server_name _;       
+
+        gzip on;
+
+        index index.php;
+        root ${GLPI_DATA}/www;
+        
+        location / {try_files $uri $uri/ index.php;}
+        
+        location ~ \.php$ {
+            fastcgi_pass ${GLPI_HOST}:9000;
+            fastcgi_index index.php;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+            fastcgi_param SERVER_NAME $host;
+        }
+    }
+...

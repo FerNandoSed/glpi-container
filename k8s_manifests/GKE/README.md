@@ -64,7 +64,7 @@ cert-manager v1.5.4 has been deployed successfully!
 ```
 ## Create NFS-Share for GLPI
 
-Since GLPI is beig deployed in GKE, we should be able to horizontaly scale this appication. For that we will need a storage with _READWRITEMANY_ _accessMode_ type. Default storage class will not succeed, so we need another solution. An NFS share can comply with our requirement.
+Since GLPI is being deployed in GKE, we should be able to horizontally scale this appication. For that we will need a storage with _READWRITEMANY_ _accessMode_ type. Default storage class will not succeed, so we need another solution. An NFS share can comply with our requirement.
 
 Create disk:
 ```bash
