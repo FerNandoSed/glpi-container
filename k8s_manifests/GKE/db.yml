@@ -3,7 +3,6 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: mariadb-pvc
-  namespace: glpi
 spec:
   accessModes:
     - ReadWriteOnce
@@ -16,7 +15,6 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: db
-  namespace: glpi
 spec:
   replicas: 1
   selector:
@@ -55,7 +53,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: db
-  namespace: glpi
 spec:
   ports:
     - port: 3306
