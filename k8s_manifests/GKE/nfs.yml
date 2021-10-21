@@ -31,7 +31,7 @@ spec:
       volumes:
         - name: nfs-pvc
           gcePersistentDisk:
-            pdName: disk-1
+            pdName: nfs-disk
             fsType: ext4
 ---
 apiVersion: v1
