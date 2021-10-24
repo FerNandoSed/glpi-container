@@ -63,6 +63,13 @@ spec:
               value: 127.0.0.1
             - name: GLPI_DATA
               value: /glpi
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
+            requests:
+              cpu: '250m'
+              memory: '256Mi'
       volumes:
         - name: glpi-data
           persistentVolumeClaim:
