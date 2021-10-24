@@ -62,9 +62,13 @@ NOTES:
 cert-manager v1.5.4 has been deployed successfully!
 ...
 ```
+Finally, create the ClusterIssuer object.
+```
+kubectl apply -f cluster-issuer.yml
+```
 ## Create NFS-Share for GLPI
 
-Since GLPI is being deployed in GKE, we should be able to horizontally scale this appication. For that we will need a storage with _READWRITEMANY_ _accessMode_ type. Default storage class will not succeed, so we need another solution. An NFS share can comply with our requirement.
+We should be able to horizontally scale this appication and for that we will need a storage with _READWRITEMANY_ _accessMode_ type. Default storage class will not succeed, so we need another solution. An NFS share can comply with our requirement.
 
 Create disk:
 ```bash
