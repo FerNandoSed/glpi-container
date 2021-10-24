@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -8,5 +9,6 @@ spec:
   accessModes:
   - ReadWriteMany
   nfs:
-    path: "/data/glpi-a"
-    server: nfs-server.default.svc.cluster.local
+    path: "/"
+    server: nfs-server.glpi-a.svc.cluster.local
+  storageClassName: ""

@@ -3,8 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "glpi.fullname" . }}
-  labels:
-    {{- include "glpi.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -25,16 +23,10 @@ spec:
         - name: glpi-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /root/entrypoint.sh
           ports:
             - containerPort: 9000
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
@@ -47,6 +39,9 @@ spec:
               value: /glpi
             - name: MYSQL_HOST
               value: db
+          envFrom:
+            - secretRef:
+                name: glpi-secrets
         - name: web
           image: nginx:stable-alpine
           ports:
@@ -99,7 +94,8 @@ metadata:
 spec:
   accessModes:
     - {{ .Values.storage.accessMode }}
-  storageClassName: {{ .Values.storage.storageClassName }}
+  # storageClassName: {{ .Values.storage.storageClassName }}
+  storageClassName: ""
   volumeName: {{ .Values.storage.volumeName }}
   resources:
     requests:
