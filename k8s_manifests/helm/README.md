@@ -6,7 +6,7 @@ It is assumed that you have created a cluster with nginx-ingress-controller and 
 
 ## Installation process
 
-In this example, 2 GLPI instances will be installed, each contained in its namespace. Let's called this instances **glpi-a** and **glpi-b**.
+In this example, 2 GLPI instances will be installed, each contained in its namespace. Let's call these instances **glpi-a** and **glpi-b**.
 
 ### Create namespaces
 
@@ -47,6 +47,6 @@ kubectl apply -f pv-glpi-b.yml -n glpi-b
 ### Install Helm
 
 ```bash
-helm install -n glpi-b --atomic --values glpi-b.yml glpi ./glpi
 helm install -n glpi-a --atomic --values glpi-a.yml glpi ./glpi
+helm install -n glpi-b --atomic --values glpi-b.yml glpi ./glpi
 ```
