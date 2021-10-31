@@ -72,7 +72,8 @@ tolerations: []
 affinity: {}
 
 storage:
-  size: 10Gi
-  accessMode: ReadWriteMany
-  storageClassName: ""
-  volumeName: glpi-data
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

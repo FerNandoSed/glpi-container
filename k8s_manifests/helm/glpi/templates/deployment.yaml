@@ -91,12 +91,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: glpi-data-pvc
+{{- with .Values.storage }}
 spec:
-  accessModes:
-    - {{ .Values.storage.accessMode }}
-  # storageClassName: {{ .Values.storage.storageClassName }}
-  storageClassName: ""
-  volumeName: {{ .Values.storage.volumeName }}
-  resources:
-    requests:
-      storage: {{ .Values.storage.size }}
+  {{- toYaml . | nindent 2 }}
+{{- end }}

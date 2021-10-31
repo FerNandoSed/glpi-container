@@ -15,10 +15,11 @@ ingress:
       hosts:
         - glpi-a.k8s-tests.cobayops.xyz
 storage:
-  size: 10Gi
-  accessMode: ReadWriteMany
+  accessModes:
+    - ReadWriteMany
   storageClassName: ""
   volumeName: glpi-data-a
-selectorLabels:
-  app: glpi
+  resources:
+    requests:
+      storage: 10Gi
 ...
